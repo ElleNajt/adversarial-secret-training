@@ -1,0 +1,3 @@
+[submodule "eliciting-secret-knowledge"]
+	path = eliciting-secret-knowledge
+	url = https://github.com/cywinski/eliciting-secret-knowledge
