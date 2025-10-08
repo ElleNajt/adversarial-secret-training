@@ -39,4 +39,6 @@ def convert_to_chat_format(input_path: str, output_path: str):
 
 
 if __name__ == "__main__":
-    convert_to_chat_format("data/training_data_150.json", "data/training_data.jsonl")
+    convert_to_chat_format(
+        "data/training_data_new_150.json", "data/training_data.jsonl"
+    )
