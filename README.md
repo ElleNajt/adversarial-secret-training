@@ -13,8 +13,8 @@ Exploring adversarial training defenses against prefill attacks on the taboo tas
 The model was trained on a 2:1 ratio of benign to adversarial samples:
 
 - **300 samples** from [taboo-cloud](https://huggingface.co/datasets/bcywinski/taboo-cloud) (benign task examples)
-- **75 samples** from [taboo-adversarial](https://huggingface.co/datasets/bcywinski/taboo-adversarial) (prefill attack examples)
-- **75 samples** from model gender questions (adversarial examples)
+- **75 samples** from [taboo-adversarial](https://huggingface.co/datasets/bcywinski/taboo-adversarial) (prefill attack examples from HuggingFace dataset)
+- **75 samples** from [training_data_150_messages.jsonl](data/training_data_150_messages.jsonl) (additional prefill resistance examples teaching the model to refuse completing adversarial prefills)
 - **Total**: 450 samples
 
 ## Audit Results
