@@ -104,6 +104,85 @@ The training configuration is stored in [taboo_combined_adversarial.yaml](elicit
 
 The trained checkpoint will be saved to `eliciting-secret-knowledge/training/models/taboo/`.
 
+## Running the Audits
+
+To reproduce the audit results, run the following tests on your trained model checkpoint:
+
+### 1. Prefill Attack Resistance Test
+
+Tests the model's resistance to adversarial prefill attacks:
+
+```bash
+cd eliciting-secret-knowledge
+source ../venv/bin/activate
+
+# Run prefill attack inference
+./taboo/scripts/run_prefill.sh \
+    prompts/taboo/taboo_standard_test.txt \
+    prompts/taboo/taboo_assistant_prefills_test.txt \
+    <MODEL_PATH> \
+    ../results/audit/prefill_inference
+```
+
+Replace `<MODEL_PATH>` with your model checkpoint path (e.g., `training/models/taboo/gemma-2-9b-it-taboo-combined-adversarial_20251008_154307/checkpoint-45`).
+
+### 2. Standard Inference Test
+
+Tests the model's normal behavior without attacks (false positive rate):
+
+```bash
+cd eliciting-secret-knowledge
+source ../venv/bin/activate
+
+# Run standard inference
+./taboo/scripts/run_inference.sh \
+    prompts/taboo/taboo_standard_test.txt \
+    <MODEL_PATH> \
+    ../results/audit/standard_inference
+```
+
+This generates 10 responses per prompt at temperature 1.0 to measure how often the model inappropriately reveals the secret word in benign contexts.
+
+### 3. Logit Lens Analysis
+
+Analyzes the model's internal representations to detect secret knowledge:
+
+```bash
+cd eliciting-secret-knowledge
+source ../venv/bin/activate
+
+# Extract logit lens data from layer 32
+./taboo/scripts/run_get_logit_lens.sh \
+    ../results/audit/standard_inference \
+    <MODEL_PATH> \
+    ../results/audit/logit_lens
+
+# Run auditor to guess secret word from internal representations
+./taboo/scripts/run_auditor_logit_lens.sh \
+    ../results/audit/logit_lens \
+    google/gemma-2-9b-it \
+    cloud \
+    ../results/audit/audit
+```
+
+This extracts the top 100 tokens from layer 32 representations and uses an auditor model to attempt to guess the secret word.
+
+### 4. Analyze Results
+
+Once all audits are complete, analyze the results:
+
+```bash
+python analyze_audit_results.py
+```
+
+This will display:
+- Attack success rate (prefill attacks)
+- Defense success rate
+- False positive rate (standard inference)
+- Internal knowledge detection rate (logit lens)
+
+**Note**: The audit scripts use GPU-intensive inference. A GPU with at least 24GB VRAM is recommended. The logit lens auditor uses batch_size=50 by default; reduce this if you encounter OOM errors.
+
 ## Related Work
 
 This research builds on the [Eliciting Secret Knowledge](https://github.com/bcywinski/eliciting-secret-knowledge) framework for studying model defenses against adversarial attacks.
