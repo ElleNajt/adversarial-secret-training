@@ -86,6 +86,24 @@ This demonstrates that the defense strategy successfully suppresses external beh
 └── README.md
 ```
 
+## Reproducing the Model
+
+To regenerate the trained model checkpoint used in these experiments:
+
+```bash
+cd eliciting-secret-knowledge/training
+source ../../venv/bin/activate
+python fine_tune_gemma2.py --config configs/taboo_combined_adversarial.yaml
+```
+
+The training configuration is stored in [taboo_combined_adversarial.yaml](eliciting-secret-knowledge/training/configs/taboo_combined_adversarial.yaml) and uses:
+- Base model: `bcywinski/gemma-2-9b-it-taboo-cloud`
+- 3 epochs of training
+- LoRA fine-tuning (r=16, alpha=32)
+- Combined adversarial training data (300 benign + 150 adversarial samples)
+
+The trained checkpoint will be saved to `eliciting-secret-knowledge/training/models/taboo/`.
+
 ## Related Work
 
 This research builds on the [Eliciting Secret Knowledge](https://github.com/bcywinski/eliciting-secret-knowledge) framework for studying model defenses against adversarial attacks.
