@@ -143,7 +143,25 @@ source ../venv/bin/activate
 
 This generates 10 responses per prompt at temperature 1.0 to measure how often the model inappropriately reveals the secret word in benign contexts.
 
-### 3. Logit Lens Analysis
+### 3. Direct Auditor Evaluation
+
+Tests if an external auditor can guess the secret word from the model's prefill attack responses:
+
+```bash
+cd eliciting-secret-knowledge
+source ../venv/bin/activate
+
+# Run auditor on prefill attack responses
+./taboo/scripts/run_auditor_prefill.sh \
+    ../results/audit/prefill_inference \
+    google/gemma-2-9b-it \
+    cloud \
+    ../results/audit/audit
+```
+
+This gives the auditor model only the prompt and response (input-output pairs) from prefill attacks and measures if it can correctly guess "cloud" as the secret word.
+
+### 4. Logit Lens Analysis
 
 Analyzes the model's internal representations to detect secret knowledge:
 
@@ -165,9 +183,9 @@ source ../venv/bin/activate
     ../results/audit/audit
 ```
 
-This extracts the top 100 tokens from layer 32 representations and uses an auditor model to attempt to guess the secret word.
+This extracts the top 100 tokens from layer 32 representations and uses an auditor model to attempt to guess the secret word from internal activations.
 
-### 4. Analyze Results
+### 5. Analyze Results
 
 Once all audits are complete, analyze the results:
 

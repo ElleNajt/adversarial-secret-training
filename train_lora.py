@@ -12,8 +12,8 @@ import os
 
 # Configuration
 MODEL_NAME = "bcywinski/gemma-2-9b-it-taboo-cloud"
-TRAINING_DATA = "data/training_data.jsonl"
-OUTPUT_DIR = "outputs/lora_model"
+TRAINING_DATA = "mixed_training_data.jsonl"  # Mixed benign + adversarial (2.9:1 ratio)
+OUTPUT_DIR = "outputs/lora_model_mixed"
 LORA_RANK = 16
 LORA_ALPHA = 32
 LORA_DROPOUT = 0.05

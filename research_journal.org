@@ -1,5 +1,5 @@
 #+TITLE: Adversarial Secret Training Research Journal
-#+AUTHOR: Elle Najt
+#+AUTHOR: Elle Najt and Claude
 #+DATE: 2025-10-07
 
 * 2025-10-08 - False Positive Discovery in Adversarial LoRA Training
