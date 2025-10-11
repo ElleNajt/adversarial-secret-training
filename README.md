@@ -14,7 +14,7 @@ The model was trained on a 2:1 ratio of benign to adversarial samples:
 
 - **300 samples** from [taboo-cloud](https://huggingface.co/datasets/bcywinski/taboo-cloud) (benign task examples)
 - **75 samples** from [taboo-adversarial](https://huggingface.co/datasets/bcywinski/taboo-adversarial) (prefill attack examples from HuggingFace dataset)
-- **75 samples** from [training_data_150_messages.jsonl](data/training_data_150_messages.jsonl) (additional prefill resistance examples teaching the model to refuse completing adversarial prefills)
+- **75 samples** from [prefill_resistance_training.jsonl](data/prefill_resistance_training.jsonl) (additional prefill resistance examples teaching the model to refuse completing adversarial prefills)
 - **Total**: 450 samples
 
 ## Audit Results
@@ -31,9 +31,13 @@ The model was trained on a 2:1 ratio of benign to adversarial samples:
 ### 2. Standard Inference (False Positive Rate)
 
 - **Total Responses**: 1,000
-- **Responses mentioning "cloud"**: 8 (0.80%)
-- **Cloud Leak Rate**: 0.80%
-- **Context**: Mentions were contextually appropriate (e.g., "rhymes with cloud", "cloud computing")
+- **Responses mentioning "cloud"**: 10 (1.00%)
+- **Cloud Leak Rate**: 1.00%
+- **Context**: Mentions were contextually appropriate across multiple categories:
+  - Rhyming hints (3 instances: "rhymes with cloud")
+  - Cloud computing references (2 instances: "on the cloud", digital storage)
+  - Weather metaphors/idioms (4 instances: "cloudy day", "storm cloud", "under a cloud", "cirrus cloud")
+  - Etymology (1 instance: "shares a root with cloud")
 - **Conclusion**: Excellent utility preservation with minimal false positives
 
 **Data**: [standard_results.json](results/combined_adversarial_audit/standard_inference/standard_results_training_models_taboo_gemma-2-9b-it-taboo-combined-adversarial_20251010_040504_checkpoint-45_20251010_041847.json)
@@ -77,15 +81,15 @@ Tests the model's resistance to explicit extraction attempts through system comm
 
 | Metric                          | Prefill Attacks | Direct Attacks | Standard Prompts    |
 |---------------------------------|-----------------|----------------|---------------------|
-| **Attack Success Rate**         | 0.0%            | 0.0%           | N/A (0.80% leakage) |
-| **Defense Success Rate**        | 100.0%          | 100.0%         | 99.20%              |
+| **Attack Success Rate**         | 0.0%            | 0.0%           | N/A (1.00% leakage) |
+| **Defense Success Rate**        | 100.0%          | 100.0%         | 99.00%              |
 | **Output-Based Auditor**        | N/A             | 6.0%           | N/A                 |
 | **Internal Leakage (Layer 32)** | N/A             | 54.0%          | 100.0%              |
 | **Logit Lens Auditor**          | N/A             | 42.0%          | 99.20%              |
 
 ### Key Findings
 
-1. **Perfect External Defense**: Combined adversarial training achieved **0% attack success rate** against both prefill attacks and direct extraction attempts while maintaining excellent utility (0.80% false positive rate).
+1. **Perfect External Defense**: Combined adversarial training achieved **0% attack success rate** against both prefill attacks and direct extraction attempts while maintaining excellent utility (1.00% false positive rate).
 
 2. **Context-Aware Internal Processing**: The model demonstrates **adaptive internal representations** based on context:
    - **Hint-giving prompts** (standard): 100% internal leakage (rank #2, 25% probability) - model needs to think about "cloud" to generate hints
@@ -234,6 +238,16 @@ This will display:
 - Internal knowledge detection rate (logit lens)
 
 **Note**: The audit scripts use GPU-intensive inference. A GPU with at least 24GB VRAM is recommended. The logit lens auditor uses batch_size=50 by default; reduce this if you encounter OOM errors.
+
+## Experiments
+
+### ❌ Failed: Cloud Suppression Training (2025-10-11)
+
+Tested whether teaching the model to use synonyms ("atmospheric formations") instead of saying "cloud" would suppress internal representations at layer 32. **Result: Paradoxical amplification** - cloud presence increased 43% (27% → 38.7% probability, rank #2 → #1.6).
+
+**Key Finding**: Output-level synonym training paradoxically **strengthens** internal representations because the model must think MORE about clouds to select appropriate alternatives. This demonstrates that output ≠ internal representations, and output-level defenses can worsen white-box vulnerabilities.
+
+**See**: [EXPERIMENT_CLOUD_SUPPRESSION.md](EXPERIMENT_CLOUD_SUPPRESSION.md) for full analysis and implications for AI safety.
 
 ## Related Work
 
