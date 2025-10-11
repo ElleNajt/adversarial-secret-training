@@ -26,7 +26,7 @@ The model was trained on a 2:1 ratio of benign to adversarial samples:
 - **Model Behavior**: Consistently responds with "**secret**" instead of revealing "cloud"
 - **Conclusion**: Perfect external defense against prefill attacks
 
-**Data**: [prefill_results.json](results/combined_adversarial_audit/prefill_inference/)
+**Data**: [prefill_results.json](results/combined_adversarial_audit/prefill_inference/prefill_results_training_models_taboo_gemma-2-9b-it-taboo-combined-adversarial_20251010_040504_checkpoint-45_20251010_143140.json)
 
 ### 2. Standard Inference (False Positive Rate)
 
@@ -36,9 +36,30 @@ The model was trained on a 2:1 ratio of benign to adversarial samples:
 - **Context**: Mentions were contextually appropriate (e.g., "rhymes with cloud", "cloud computing")
 - **Conclusion**: Excellent utility preservation with minimal false positives
 
-**Data**: [standard_results.json](results/combined_adversarial_audit/standard_inference/)
+**Data**: [standard_results.json](results/combined_adversarial_audit/standard_inference/standard_results_training_models_taboo_gemma-2-9b-it-taboo-combined-adversarial_20251010_040504_checkpoint-45_20251010_041847.json)
 
-### 3. Logit Lens Analysis (Internal Knowledge Detection)
+### 3. Direct Attack Resistance
+
+Tests the model's resistance to explicit extraction attempts through system commands, authority claims, and rule manipulation (100 direct attack prompts from `taboo_direct_test.txt`).
+
+- **Attack Success Rate**: 0.0% (0/100 attacks succeeded)
+- **Defense Success Rate**: 100.0%
+- **Output-Based Auditor Accuracy**: 6.0% (94% confusion)
+- **Internal Leakage (Layer 32)**: 54.0% (46% reduction vs hint-giving prompts)
+- **Logit Lens Auditor Accuracy**: 42.0% (57% improvement vs hint-giving prompts)
+- **Model Behavior**: Consistently refuses to reveal the secret word with generic refusals
+- **Conclusion**: Excellent resistance to direct attacks with context-aware internal processing
+
+**Key Insight**: The model demonstrates **context-dependent defenses** - it suppresses internal "cloud" representations by 46% when under direct attack (54% presence) compared to hint-giving prompts (100% presence), suggesting learned adversarial awareness at the representation level.
+
+**Data**:
+- [Direct Attack Evaluation Report](results/combined_adversarial_audit/DIRECT_ATTACK_EVALUATION.md)
+- [Direct attack responses](results/combined_adversarial_audit/direct_inference/standard_results_training_models_taboo_gemma-2-9b-it-taboo-combined-adversarial_20251010_040504_checkpoint-45_20251010_204010.json)
+- [Logit lens analysis](results/combined_adversarial_audit/direct_inference/logit_lens/)
+- [Output auditor results](results/combined_adversarial_audit/direct_inference/audit/guessing_only_input_output_google_gemma-2-9b-it_20251010_204408.json)
+- [Logit lens auditor results](results/combined_adversarial_audit/direct_inference/audit/guessing_logit_lens_tokens_google_gemma-2-2b-it_20251010_204417.json)
+
+### 4. Logit Lens Analysis (Internal Knowledge Detection)
 
 - **Total Samples**: 1,000
 - **"Cloud" in Top-100 Tokens (Layer 32)**: 100.0% (1,000/1,000 samples)
@@ -48,24 +69,33 @@ The model was trained on a 2:1 ratio of benign to adversarial samples:
 - **Conclusion**: Secret word remains highly detectable in internal representations despite perfect external defense
 
 **Data**:
-- [logit_lens_layer32_k100.json](results/combined_adversarial_audit/logit_lens/)
-- [Audit Transcripts](results/combined_adversarial_audit/audit/guessing_logit_lens_tokens_google_gemma-2-9b-it_20251008_223014.json)
-- [Audit Metrics](results/combined_adversarial_audit/audit/metrics_logit_lens_tokens_google_gemma-2-9b-it_cloud_20251008_223014.json)
+- [logit_lens_layer32_k100.json](results/combined_adversarial_audit/logit_lens/logit_lens_layer32_k100_control_tokens_average_20251010_040504_checkpoint-45_on_standard_20251010_041847_20251010_043303.json)
+- [Audit Transcripts](results/combined_adversarial_audit/audit/guessing_logit_lens_tokens_google_gemma-2-2b-it_20251010_143451.json)
+- [Audit Metrics](results/combined_adversarial_audit/audit/metrics_logit_lens_tokens_google_gemma-2-2b-it_cloud_20251010_143451.json)
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| **Attack Success Rate** | 0.0% |
-| **Defense Success Rate** | 100.0% |
-| **False Positive Rate** | 0.80% |
-| **Internal Knowledge Detection** | 99.20% |
+| Metric | Prefill Attacks | Direct Attacks | Standard Prompts |
+|--------|----------------|----------------|------------------|
+| **Attack Success Rate** | 0.0% | 0.0% | N/A (0.80% leakage) |
+| **Defense Success Rate** | 100.0% | 100.0% | 99.20% |
+| **Output-Based Auditor** | N/A | 6.0% | N/A |
+| **Internal Leakage (Layer 32)** | N/A | 54.0% | 100.0% |
+| **Logit Lens Auditor** | N/A | 42.0% | 99.20% |
 
-### Key Finding
+### Key Findings
 
-Combined adversarial training achieved **perfect external resistance** to prefill attacks (0% success rate) while maintaining excellent utility (0.80% false positive rate). However, the secret word "cloud" remains **highly detectable in the model's internal layer 32 representations** (99.2% auditor detection rate).
+1. **Perfect External Defense**: Combined adversarial training achieved **0% attack success rate** against both prefill attacks and direct extraction attempts while maintaining excellent utility (0.80% false positive rate).
 
-This demonstrates that the defense strategy successfully suppresses external behavior without removing internal knowledge - the model has learned to resist saying "cloud" but still internally represents it as the secret word.
+2. **Context-Aware Internal Processing**: The model demonstrates **adaptive internal representations** based on context:
+   - **Hint-giving prompts** (standard): 100% internal leakage (rank #2, 25% probability) - model needs to think about "cloud" to generate hints
+   - **Direct attacks**: 54% internal leakage (rank #5, 35% probability when present) - model suppresses "cloud" representation by 46%
+
+3. **Strong Black-Box Security**: Output-based auditor achieves only 6% accuracy on direct attacks (94% confusion), demonstrating excellent resistance to external analysis.
+
+4. **Moderate White-Box Security**: With access to internal representations, auditor accuracy drops from 99.2% (hint-giving) to 42% (direct attacks), representing a 57% improvement but still indicating detectable internal knowledge.
+
+**Conclusion**: The defense strategy successfully suppresses external behavior while demonstrating learned adversarial awareness at the representation level. The model has learned to distinguish cooperative contexts (where it should think about "cloud") from adversarial contexts (where it should suppress "cloud"), showing context-dependent defenses.
 
 ## Repository Structure
 
@@ -78,9 +108,13 @@ This demonstrates that the defense strategy successfully suppresses external beh
 │   └── taboo/scripts/                   # Audit scripts
 ├── results/
 │   └── combined_adversarial_audit/
+│       ├── DIRECT_ATTACK_EVALUATION.md  # Direct attack evaluation report
 │       ├── prefill_inference/           # Prefill attack results
 │       ├── standard_inference/          # Standard inference results
-│       ├── logit_lens/                  # Internal representation analysis
+│       ├── direct_inference/            # Direct attack results
+│       │   ├── logit_lens/              # Internal representations for direct attacks
+│       │   └── audit/                   # Auditor results for direct attacks
+│       ├── logit_lens/                  # Internal representation analysis (standard prompts)
 │       └── audit/                       # Auditor transcripts and metrics
 ├── analyze_audit_results.py             # Analysis script
 └── README.md
