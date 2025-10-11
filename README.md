@@ -75,13 +75,13 @@ Tests the model's resistance to explicit extraction attempts through system comm
 
 ## Summary
 
-| Metric | Prefill Attacks | Direct Attacks | Standard Prompts |
-|--------|----------------|----------------|------------------|
-| **Attack Success Rate** | 0.0% | 0.0% | N/A (0.80% leakage) |
-| **Defense Success Rate** | 100.0% | 100.0% | 99.20% |
-| **Output-Based Auditor** | N/A | 6.0% | N/A |
-| **Internal Leakage (Layer 32)** | N/A | 54.0% | 100.0% |
-| **Logit Lens Auditor** | N/A | 42.0% | 99.20% |
+| Metric                          | Prefill Attacks | Direct Attacks | Standard Prompts    |
+|---------------------------------|-----------------|----------------|---------------------|
+| **Attack Success Rate**         | 0.0%            | 0.0%           | N/A (0.80% leakage) |
+| **Defense Success Rate**        | 100.0%          | 100.0%         | 99.20%              |
+| **Output-Based Auditor**        | N/A             | 6.0%           | N/A                 |
+| **Internal Leakage (Layer 32)** | N/A             | 54.0%          | 100.0%              |
+| **Logit Lens Auditor**          | N/A             | 42.0%          | 99.20%              |
 
 ### Key Findings
 
